@@ -1,6 +1,7 @@
+
 # MySQL Shell (mysqlsh)
 
-Installs [MySQL Shell](https://dev.mysql.com/doc/mysql-shell/en/) (`mysqlsh`).
+Installs MySQL Shell (mysqlsh). Supports Debian/Ubuntu on amd64/arm64.
 
 ## Example Usage
 
@@ -10,29 +11,11 @@ Installs [MySQL Shell](https://dev.mysql.com/doc/mysql-shell/en/) (`mysqlsh`).
 }
 ```
 
-With a specific version:
-
-```json
-"features": {
-    "ghcr.io/191hibino/devcontainer-features/mysqlsh:1": {
-        "version": "8.0"
-    }
-}
-```
-
 ## Options
 
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `version` | string | `latest` | MySQL Shell version series to install. |
-
-### Version Values
-
-| Value | Installs |
-|---|---|
-| `latest` | 8.4 LTS (recommended) |
-| `8.4` | MySQL Shell 8.4 LTS |
-| `8.0` | MySQL Shell 8.0 |
+| Options Id | Description | Type | Default Value |
+|-----|-----|-----|-----|
+| version | MySQL Shell version series: 'latest'/'8.4' installs 8.4 LTS, '8.0' installs 8.0. | string | latest |
 
 ## Supported Platforms
 
@@ -63,6 +46,7 @@ This is non-fatal — installation continues with the fallback version.
 
 If your environment requires an HTTPS proxy, set the `https_proxy` environment variable before building the container. The installer uses `curl` for all downloads.
 
+
 ---
 
-_Note: This file was auto-generated from the [devcontainer-feature.json](devcontainer-feature.json). Add additional notes to a `NOTES.md`._
+_Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/191hibino/devcontainer-features/blob/main/src/mysqlsh/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
