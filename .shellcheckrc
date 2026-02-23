@@ -1,0 +1,3 @@
+# SC1091: Not following source: dev-container-features-test-lib is a runtime library
+#         not present in the repository; source path cannot be resolved at lint time.
+disable=SC1091

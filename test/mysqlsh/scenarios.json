@@ -1,0 +1,68 @@
+{
+  "install_default_ubuntu_jammy": {
+    "image": "ubuntu:jammy",
+    "features": {
+      "mysqlsh": {}
+    }
+  },
+  "install_84_ubuntu_jammy": {
+    "image": "ubuntu:jammy",
+    "features": {
+      "mysqlsh": {
+        "version": "8.4"
+      }
+    }
+  },
+  "install_80_ubuntu_jammy": {
+    "image": "ubuntu:jammy",
+    "features": {
+      "mysqlsh": {
+        "version": "8.0"
+      }
+    }
+  },
+  "install_default_ubuntu_noble": {
+    "image": "ubuntu:noble",
+    "features": {
+      "mysqlsh": {}
+    }
+  },
+  "install_84_ubuntu_noble": {
+    "image": "ubuntu:noble",
+    "features": {
+      "mysqlsh": {
+        "version": "8.4"
+      }
+    }
+  },
+  "install_80_ubuntu_noble": {
+    "image": "ubuntu:noble",
+    "features": {
+      "mysqlsh": {
+        "version": "8.0"
+      }
+    }
+  },
+  "install_default_debian_bookworm": {
+    "image": "debian:bookworm",
+    "features": {
+      "mysqlsh": {}
+    }
+  },
+  "install_84_debian_bookworm": {
+    "image": "debian:bookworm",
+    "features": {
+      "mysqlsh": {
+        "version": "8.4"
+      }
+    }
+  },
+  "install_80_debian_bookworm": {
+    "image": "debian:bookworm",
+    "features": {
+      "mysqlsh": {
+        "version": "8.0"
+      }
+    }
+  }
+}

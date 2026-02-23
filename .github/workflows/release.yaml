@@ -1,0 +1,57 @@
+name: "Release dev container features & Generate Documentation"
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      packages: write
+      actions: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: "Verify CI passed on main"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          conclusion=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/test.yaml/runs?branch=main&per_page=1" \
+            --jq '.workflow_runs[0].conclusion')
+          if [ "${conclusion}" != "success" ]; then
+            echo "ERROR: Latest CI run on main did not succeed (conclusion: ${conclusion})."
+            echo "Ensure all tests pass before releasing."
+            exit 1
+          fi
+
+      - name: "Publish Features"
+        uses: devcontainers/action@1082abd5d2bf3a11abccba70eef98df068277772 # v1.4.3
+        with:
+          publish-features: "true"
+          base-path-to-features: "./src"
+          generate-docs: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create PR for Documentation
+        id: push_image_info
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          echo "Start."
+          git config --global user.email github-actions[bot]@users.noreply.github.com
+          git config --global user.name github-actions[bot]
+          git config pull.rebase false
+          branch=automated-documentation-update-$GITHUB_RUN_ID
+          git checkout -b $branch
+          message='Automated documentation update'
+          git add src/*/README.md
+          git commit -m 'Automated documentation update [skip ci]' || export NO_UPDATES=true
+          if [ "$NO_UPDATES" != "true" ] ; then
+              git push origin "$branch"
+              gh pr create --title "$message" --body "$message"
+          fi

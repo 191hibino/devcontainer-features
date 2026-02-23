@@ -1,0 +1,69 @@
+name: "Update arm64 fallback versions"
+on:
+  schedule:
+    - cron: '0 0 1 * *'  # Monthly on the 1st
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: "Fetch latest MySQL Shell versions"
+        id: versions
+        run: |
+          releases=$(curl -fsSL "https://api.github.com/repos/mysql/mysql-shell/releases?per_page=100")
+          v80=$(echo "${releases}" | grep '"tag_name"' | grep '"mysql-shell-8\.0\.' | head -1 | sed 's/.*"mysql-shell-\([^"]*\)".*/\1/')
+          v84=$(echo "${releases}" | grep '"tag_name"' | grep '"mysql-shell-8\.4\.' | head -1 | sed 's/.*"mysql-shell-\([^"]*\)".*/\1/')
+
+          if [ -z "${v80}" ] || [ -z "${v84}" ]; then
+            echo "ERROR: Failed to fetch one or more versions (v80=${v80}, v84=${v84})"
+            exit 1
+          fi
+
+          echo "v80=${v80}" >> "${GITHUB_OUTPUT}"
+          echo "v84=${v84}" >> "${GITHUB_OUTPUT}"
+
+      - name: "Update fallback versions in install.sh"
+        run: |
+          sed -i "s/^FALLBACK_80=.*/FALLBACK_80=\"${{ steps.versions.outputs.v80 }}\"/" src/mysqlsh/install.sh
+          sed -i "s/^FALLBACK_84=.*/FALLBACK_84=\"${{ steps.versions.outputs.v84 }}\"/" src/mysqlsh/install.sh
+
+      - name: "Check for changes"
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+            git diff
+          fi
+
+      - name: "Create PR"
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          branch="update-fallback-versions-$(date +%Y%m%d)"
+          git checkout -b "${branch}"
+          git add src/mysqlsh/install.sh
+          git commit -m "chore: update arm64 fallback versions [skip ci]"
+          git push origin "${branch}"
+          printf '%s\n' \
+            "Automated monthly update of arm64 fallback versions based on latest MySQL Shell releases." \
+            "" \
+            "| Series | Version |" \
+            "|---|---|" \
+            "| 8.0 | ${{ steps.versions.outputs.v80 }} |" \
+            "| 8.4 | ${{ steps.versions.outputs.v84 }} |" \
+            > /tmp/pr-body.md
+          gh pr create \
+            --title "chore: update arm64 fallback versions" \
+            --body-file /tmp/pr-body.md

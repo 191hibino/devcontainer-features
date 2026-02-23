@@ -1,0 +1,21 @@
+{
+  "name": "MySQL Shell",
+  "id": "mysqlsh",
+  "version": "1.0.0",
+  "description": "Installs MySQL Shell (mysqlsh). Supports Debian/Ubuntu on amd64/arm64.",
+  "documentationURL": "https://dev.mysql.com/doc/mysql-shell/en/",
+  "licenseURL": "https://github.com/191hibino/devcontainer-features/blob/main/LICENSE",
+  "keywords": ["mysql", "mysqlsh", "mysql-shell", "database"],
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": [
+        "latest",
+        "8.0",
+        "8.4"
+      ],
+      "default": "latest",
+      "description": "MySQL Shell version series: 'latest'/'8.4' installs 8.4 LTS, '8.0' installs 8.0."
+    }
+  }
+}
