@@ -17,3 +17,4 @@ npm-debug.log*
 
 # Claude Code (workspace-local settings, may contain local paths)
 .claude/
+CLAUDE.local.md
