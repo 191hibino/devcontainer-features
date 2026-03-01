@@ -23,6 +23,16 @@ On arm64, the exact version is resolved via the GitHub Tags API. If the API is u
 
 This is non-fatal — installation continues with the fallback version.
 
+### arm64: GPG signature verification
+
+For arm64 tarball installs, the installer verifies the downloaded archive with Oracle/MySQL GPG signatures.
+It downloads:
+
+- Signature: `https://dev.mysql.com/downloads/gpg/?file=<tarball>&p=43`
+- Public keys: `RPM-GPG-KEY-mysql-2022`, `RPM-GPG-KEY-mysql-2025` from `https://repo.mysql.com/`
+
+If signature or key retrieval fails, or signature verification fails, installation exits with an error.
+
 ### HTTPS proxy environments
 
 If your environment requires an HTTPS proxy, set the `https_proxy` environment variable before building the container. The installer uses `curl` for all downloads.

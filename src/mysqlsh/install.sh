@@ -99,7 +99,7 @@ install_arm64() {
     # Install required tools
     export DEBIAN_FRONTEND=noninteractive
     apt-get update -y
-    apt-get install -y --no-install-recommends curl ca-certificates tar
+    apt-get install -y --no-install-recommends curl ca-certificates tar gnupg
 
     local exact_ver
     exact_ver="$(get_exact_version_arm64 "${series}")"
@@ -112,25 +112,52 @@ install_arm64() {
 
     curl -fsSL --connect-timeout 30 "${url}" -o "${tmpfile}"
 
-    # Best-effort SHA256 verification (skipped gracefully if checksum file is unavailable)
-    local sha256_file
-    sha256_file="$(mktemp /tmp/mysqlsh-sha256-XXXXXX)"
-    if curl -fsSL --connect-timeout 10 "${url}.sha256" -o "${sha256_file}" 2>/dev/null; then
-        print_info "Verifying SHA256 checksum..."
-        local expected
-        local actual
-        expected="$(awk '{print $1}' "${sha256_file}")"
-        actual="$(sha256sum "${tmpfile}" | awk '{print $1}')"
-        if [ "${expected}" != "${actual}" ]; then
-            print_error "SHA256 checksum mismatch. Expected: ${expected}, got: ${actual}"
-            rm -f "${tmpfile}" "${sha256_file}"
-            exit 1
-        fi
-        print_info "SHA256 checksum OK."
-    else
-        print_info "Checksum file unavailable; trusting HTTPS for download integrity."
+    # Verify downloaded tarball using Oracle/MySQL GPG signature
+    local sig_url
+    sig_url="https://dev.mysql.com/downloads/gpg/?file=${tarball}&p=43"
+    local sig_file
+    sig_file="$(mktemp /tmp/mysqlsh-XXXXXX.sig.asc)"
+    local key_2022
+    key_2022="$(mktemp /tmp/mysqlsh-key-2022-XXXXXX.asc)"
+    local key_2025
+    key_2025="$(mktemp /tmp/mysqlsh-key-2025-XXXXXX.asc)"
+    local gpg_home
+    gpg_home="$(mktemp -d /tmp/mysqlsh-gnupg-XXXXXX)"
+    chmod 700 "${gpg_home}"
+
+    if ! curl -fsSL --connect-timeout 30 "${sig_url}" -o "${sig_file}"; then
+        print_error "Failed to download GPG signature: ${sig_url}"
+        rm -f "${tmpfile}" "${sig_file}" "${key_2022}" "${key_2025}"
+        rm -rf "${gpg_home}"
+        exit 1
     fi
-    rm -f "${sha256_file}"
+
+    if ! curl -fsSL --connect-timeout 30 "https://repo.mysql.com/RPM-GPG-KEY-mysql-2022" -o "${key_2022}" \
+        || ! curl -fsSL --connect-timeout 30 "https://repo.mysql.com/RPM-GPG-KEY-mysql-2025" -o "${key_2025}"; then
+        print_error "Failed to download MySQL GPG public keys."
+        rm -f "${tmpfile}" "${sig_file}" "${key_2022}" "${key_2025}"
+        rm -rf "${gpg_home}"
+        exit 1
+    fi
+
+    if ! gpg --batch --homedir "${gpg_home}" --import "${key_2022}" "${key_2025}" >/dev/null 2>&1; then
+        print_error "Failed to import MySQL GPG public keys."
+        rm -f "${tmpfile}" "${sig_file}" "${key_2022}" "${key_2025}"
+        rm -rf "${gpg_home}"
+        exit 1
+    fi
+
+    print_info "Verifying GPG signature..."
+    if ! gpg --batch --homedir "${gpg_home}" --verify "${sig_file}" "${tmpfile}" >/dev/null 2>&1; then
+        print_error "GPG signature verification failed for ${tarball}."
+        rm -f "${tmpfile}" "${sig_file}" "${key_2022}" "${key_2025}"
+        rm -rf "${gpg_home}"
+        exit 1
+    fi
+    print_info "GPG signature OK."
+
+    rm -f "${sig_file}" "${key_2022}" "${key_2025}"
+    rm -rf "${gpg_home}"
 
     tar -xzf "${tmpfile}" -C /opt/
     rm -f "${tmpfile}"
