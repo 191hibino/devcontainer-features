@@ -15,10 +15,10 @@
 
 ### arm64: GitHub API unavailable
 
-On arm64, the exact version is resolved via the GitHub Releases API. If the API is unreachable (e.g., rate-limited or network restricted), the installer falls back to a built-in default version. A warning is printed to stderr in this case:
+On arm64, the exact version is resolved via the GitHub Tags API. If the API is unreachable (e.g., rate-limited or network restricted), the installer falls back to a built-in default version. A warning is printed to stderr in this case:
 
 ```
-(*) GitHub API unavailable or no matching release found. Using fallback version: 8.4.8
+(*) GitHub API unavailable or no matching tag found. Using fallback version: 8.4.8
 ```
 
 This is non-fatal — installation continues with the fallback version.

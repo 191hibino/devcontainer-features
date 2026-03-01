@@ -16,10 +16,12 @@ jobs:
 
       - name: "Fetch latest MySQL Shell versions"
         id: versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          releases=$(curl -fsSL "https://api.github.com/repos/mysql/mysql-shell/releases?per_page=100")
-          v80=$(echo "${releases}" | grep '"tag_name"' | grep '"mysql-shell-8\.0\.' | head -1 | sed 's/.*"mysql-shell-\([^"]*\)".*/\1/')
-          v84=$(echo "${releases}" | grep '"tag_name"' | grep '"mysql-shell-8\.4\.' | head -1 | sed 's/.*"mysql-shell-\([^"]*\)".*/\1/')
+          tags=$(gh api --method GET --paginate repos/mysql/mysql-shell/tags -F per_page=100 --jq '.[].name')
+          v80=$(echo "${tags}" | grep '^8\.0\.' | head -1)
+          v84=$(echo "${tags}" | grep '^8\.4\.' | head -1)
 
           if [ -z "${v80}" ] || [ -z "${v84}" ]; then
             echo "ERROR: Failed to fetch one or more versions (v80=${v80}, v84=${v84})"
