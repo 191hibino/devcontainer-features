@@ -58,7 +58,7 @@ resolve_series() {
 }
 
 # -------------------------------------------------------
-# arm64: Resolve exact version via GitHub Releases API
+# arm64: Resolve exact version via GitHub Tags API
 # -------------------------------------------------------
 get_exact_version_arm64() {
     local series="${1}"  # "8.0" or "8.4"
@@ -69,19 +69,19 @@ get_exact_version_arm64() {
         8.4) fallback="${FALLBACK_84}" ;;
     esac
 
-    # Use per_page=100 to reduce the risk of the target release falling off page 1
-    local api_url="https://api.github.com/repos/mysql/mysql-shell/releases?per_page=100"
+    # Use per_page=100 to reduce the risk of the target tag falling off page 1
+    local api_url="https://api.github.com/repos/mysql/mysql-shell/tags?per_page=100"
     local exact_ver
     exact_ver=$(curl -fsSL --connect-timeout 10 "${api_url}" 2>/dev/null \
-        | grep '"tag_name"' \
-        | grep "mysql-shell-${series}\." \
+        | grep '"name"' \
+        | grep "\"${series}\." \
         | head -1 \
-        | sed 's/.*"mysql-shell-\([^"]*\)".*/\1/' \
+        | sed 's/.*"\([^"]*\)".*/\1/' \
         || true)
 
     if [ -z "${exact_ver}" ]; then
         # Use stderr so this message is not captured by command substitution
-        echo -e "\n(*) GitHub API unavailable or no matching release found. Using fallback version: ${fallback}\n" >&2
+        echo -e "\n(*) GitHub API unavailable or no matching tag found. Using fallback version: ${fallback}\n" >&2
         echo "${fallback}"
     else
         echo "${exact_ver}"
