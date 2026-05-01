@@ -23,8 +23,8 @@ set -euo pipefail
 VERSION="${VERSION:-"latest"}"
 
 # Fallback versions used when GitHub API is unavailable (arm64)
-FALLBACK_80="8.0.45"
-FALLBACK_84="8.4.8"
+FALLBACK_80="8.0.46"
+FALLBACK_84="8.4.9"
 
 # mysql-apt-config package version (update here when a new version is released)
 MYSQL_APT_CONFIG_DEB="mysql-apt-config_0.8.36-1_all.deb"
